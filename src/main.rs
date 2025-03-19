@@ -58,11 +58,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         buyer_token_account = Pubkey::from_str("7hJhA7P3QmPH37cth5ugpsMcsWk7iQBJqupSpE3W2AKu")?;
         owner_token_account = Pubkey::from_str("5ufohBPKyzfn8ZSFSGpuYJxgduwgkkgg4YrBwdY7JLKW")?;
 
-        // Verificar o saldo da conta do comprador
+        // Verificar o saldo da conta do comprador (tokens e SOL)
         let buyer_account = client.get_account(&buyer_token_account)?;
         let buyer_token_data = spl_token::state::Account::unpack(&buyer_account.data)?;
         println!("Saldo da buyer_token_account: {} tokens", 
                  buyer_token_data.amount as f64 / 1_000_000_000.0);
+
+        let buyer_sol_balance = client.get_balance(&payer.pubkey())?;
+        println!("Saldo de SOL do comprador: {} lamports", buyer_sol_balance);
     } else {
         buyer_token_account = Pubkey::default();
         owner_token_account = Pubkey::default();
@@ -83,9 +86,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Instruction {
                 program_id,
                 accounts: vec![
-                    AccountMeta::new_readonly(payer.pubkey(), true), // owner
+                    AccountMeta::new(payer.pubkey(), true), // owner (gravável)
                     AccountMeta::new(cake_account_pubkey, false),   // cake_account
-                    AccountMeta::new_readonly(payer.pubkey(), true), // buyer
+                    AccountMeta::new(payer.pubkey(), true), // buyer (gravável)
                     AccountMeta::new(buyer_token_account, false),    // buyer_token_account
                     AccountMeta::new(owner_token_account, false),    // owner_token_account
                     AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false), // token_program
